@@ -10,6 +10,7 @@ import {
   parseEther,
   getContract,
   parseUnits,
+  isAddress,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import config from "../config.js";
@@ -40,6 +41,12 @@ if (!config.chain) {
   console.error("Please set your chain in a config.js file");
   process.exit(1);
 }
+function checkAddress(address) {
+  if (isAddress(address)) {
+    return true;
+  }
+  return false;
+}
 
 function getReceiverAddresses() {
   const receiverAddresses = fs.readFileSync("receiverAddresses.txt", "utf8");
@@ -57,13 +64,17 @@ async function transferTokens() {
     transport: http(PROVIDER_URL),
   }).extend(publicActions);
 
-  const balance = await client.getBalance({
-    address: account.address,
-    token: config.tokenToTransfer,
-  });
-
   for (let i = 0; i < receiverAddresses.length; i++) {
     const receiverAddress = receiverAddresses[i];
+    if (!checkAddress(receiverAddress)) {
+      console.log(
+        `[${i + 1}/${
+          receiverAddresses.length
+        }] - ${receiverAddress} is not a valid address`
+      );
+      continue;
+    }
+
     if (
       config.tokenToTransfer === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     ) {
