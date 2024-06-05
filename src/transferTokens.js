@@ -132,10 +132,12 @@ async function main() {
     message: "Are you sure you want to continue?",
     initial: true,
   });
+  console.log("\n");
   if (prompt.confirm) {
     await transferTokens();
+  } else {
+    console.log("Exiting...");
+    process.exit(0);
   }
-  console.log("Exiting...");
-  process.exit(0);
 }
 main();
