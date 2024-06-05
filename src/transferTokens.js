@@ -2,13 +2,10 @@ import "dotenv/config";
 import prompts from "prompts";
 import fs from "fs";
 import {
-  createPublicClient,
   http,
-  formatEther,
   createWalletClient,
   publicActions,
   parseEther,
-  getContract,
   parseUnits,
   isAddress,
 } from "viem";
@@ -123,4 +120,22 @@ async function transferTokens() {
   }
 }
 
-transferTokens();
+async function main() {
+  console.log(`Config:
+  tokenToTransfer: ${config.tokenToTransfer}
+  amountToTransfer: ${config.amountToTransfer}
+  chain: ${config.chain.name}\n`);
+
+  const prompt = await prompts({
+    type: "confirm",
+    name: "confirm",
+    message: "Are you sure you want to continue?",
+    initial: true,
+  });
+  if (prompt.confirm) {
+    await transferTokens();
+  }
+  console.log("Exiting...");
+  process.exit(0);
+}
+main();
