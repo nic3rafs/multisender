@@ -53,6 +53,10 @@ function getReceiverAddresses() {
   return receiverAddresses.split("\n");
 }
 
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function transferTokens() {
   const receiverAddresses = getReceiverAddresses();
 
@@ -78,18 +82,30 @@ async function transferTokens() {
     if (
       config.tokenToTransfer === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
     ) {
+      console.log(
+        `[${i + 1}/${receiverAddresses.length}] - Sending ${
+          config.amountToTransfer
+        } Tokens to ${receiverAddress}`
+      );
       const hash = await client.sendTransaction({
         from: account.address,
         to: receiverAddress,
         value: parseEther(config.amountToTransfer.toString()),
       });
-      const transaction = await client.waitForTransactionReceipt({ hash });
-      console.log(
-        `[${i + 1}/${receiverAddresses.length}] - Tx status: ${
-          transaction.status
-        }, Tx hash: ${transaction.transactionHash}\n`
-      );
+      client.waitForTransactionReceipt({ hash }).then((transaction) => {
+        console.log(
+          `[${i + 1}/${receiverAddresses.length}] - Tx status: ${
+            transaction.status
+          }, Tx hash: ${transaction.transactionHash}`
+        );
+      });
+      await sleep(111);
     } else {
+      console.log(
+        `[${i + 1}/${receiverAddresses.length}] - Sending ${
+          config.amountToTransfer
+        } Tokens to ${receiverAddress}`
+      );
       const { request } = await client.simulateContract({
         account: client.account,
         address: config.tokenToTransfer,
@@ -101,12 +117,14 @@ async function transferTokens() {
         ],
       });
       const hash = await client.writeContract(request);
-      const transaction = await client.waitForTransactionReceipt({ hash });
-      console.log(
-        `[${i + 1}/${receiverAddresses.length}] - Tx status: ${
-          transaction.status
-        }, Tx hash: ${transaction.transactionHash}\n`
-      );
+      client.waitForTransactionReceipt({ hash }).then((transaction) => {
+        console.log(
+          `[${i + 1}/${receiverAddresses.length}] - Tx status: ${
+            transaction.status
+          }, Tx hash: ${transaction.transactionHash}`
+        );
+      });
+      await sleep(111);
     }
   }
 }
